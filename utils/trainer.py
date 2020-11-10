@@ -16,9 +16,11 @@ class Trainer(object):
         self.args = args
 
     def setup(self):
+        print("Trainer ---> setup")
         """initial the datasets, model, loss and optimizer"""
         pass
 
     def train(self):
+        print("Trainer ---> train")
         """training one epoch"""
         pass

@@ -4,9 +4,11 @@ import numpy as np
 from datasets.crowd import Crowd
 from models.vgg import vgg19
 import argparse
+# 自己加的
+from matplotlib import pyplot as plt
+import matplotlib.cm as cm
 
 args = None
-
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Test ')
@@ -17,7 +19,6 @@ def parse_args():
     parser.add_argument('--device', default='0', help='assign device')
     args = parser.parse_args()
     return args
-
 
 if __name__ == '__main__':
     args = parse_args()
@@ -33,6 +34,7 @@ if __name__ == '__main__':
     epoch_minus = []
 
     for inputs, count, name in dataloader:
+        # print(type(name))
         inputs = inputs.to(device)
         assert inputs.size(0) == 1, 'the batch size should equal to 1'
         with torch.set_grad_enabled(False):
@@ -40,6 +42,19 @@ if __name__ == '__main__':
             temp_minu = count[0].item() - torch.sum(outputs).item()
             print(name, temp_minu, count[0].item(), torch.sum(outputs).item())
             epoch_minus.append(temp_minu)
+
+            '''
+            输出密度图并保存
+            为了更平滑的可视化结果，对结果进行归一化
+            '''
+            dm = outputs.squeeze().detach().cpu().numpy()
+            # print(dm)
+            # 根据issue中的提示，需要对outputs进行归一化
+            dm_nor = (dm-np.min(dm))/(np.max(dm)-np.min(dm))
+            # print(dm_nor)
+            plt.imshow(dm_nor, cmap=cm.jet)
+            plt.savefig("/tmp/img/"+name[0])
+            print(name[0]+" ok!")
 
     epoch_minus = np.array(epoch_minus)
     mse = np.sqrt(np.mean(np.square(epoch_minus)))
